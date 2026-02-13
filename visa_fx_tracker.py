@@ -1,34 +1,42 @@
 import requests
 import json
 
+from requests.auth import HTTPBasicAuth
+
 # Rutas a los certificados de Visa
 CERT_FILE = 'cert.pem'
 KEY_FILE = 'key.pem'
 
+user_id = 'user_id'
+password = 'password'
+
 # Endpoint de Sandbox para tasas de cambio
-url = "https://sandbox.api.visa.com/forexrates/v1/foreignexchangerates"
+url = "https://sandbox.api.visa.com/forexrates/v2/foreignexchangerates"
 
 # Estructura de la solicitud (Payload) en JSON
 payload = json.dumps({
-    "requestHeader": {
-        "messageDateTime": "2026-02-12T14:00:00.000",
-        "requestMessageId": "6da60e1b8b024532a2487345b"
+    "acquirerDetails": {
+        "bin": 408999,
+        "settlement": {
+            "currencyCode": "840"
+        }
     },
-    "requestData": {
-        "sourceCurrencyCode": "840", # USD
-        "destinationCurrencyCode": "170", # COP (Colombia)
-        "sourceAmount": "100.00"
-    }
+    "rateProductCode": "A",
+    "markupRate": "0.07",
+    "destinationCurrencyCode": "170",
+    "sourceAmount": "100.55",
+    "sourceCurrencyCode": "840"
 })
-
-headers = {
-    'Content-Type': 'application/json',
-    'Authorization': 'Basic YOUR_USER_ID:YOUR_PASSWORD' # Credenciales de VDP
-}
 
 # Ejecución de la solicitud usando Two-Way SSL
 try:
-    response = requests.post(url, headers=headers, data=payload, cert=(CERT_FILE, KEY_FILE))
+    response = requests.post(
+    url, 
+    headers={'Content-Type': 'application/json'}, # Solo dejamos el tipo de contenido
+    data=payload, 
+    cert=(CERT_FILE, KEY_FILE),
+    auth=HTTPBasicAuth(user_id, password) # Requests hace el trabajo sucio por ti
+)
     
     if response.status_code == 200:
         print("Conexión exitosa con Visa Gateway")
